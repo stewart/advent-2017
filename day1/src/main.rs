@@ -2,6 +2,7 @@ const INPUT: &'static str = "428122498997587283996116951397957933569136949848379
 
 fn main() {
     println!("Sequential: {}", captcha_sequential(INPUT));
+    println!("Halfway: {}", captcha_halfway(INPUT));
 }
 
 fn captcha_sequential(input: &str) -> u32 {
@@ -10,6 +11,16 @@ fn captcha_sequential(input: &str) -> u32 {
     input.
         chars().
         zip(input.chars().cycle().skip(1).take(n)).
+        filter_map(|(a, b)| if a == b { a.to_digit(10) } else { None }).
+        sum()
+}
+
+fn captcha_halfway(input: &str) -> u32 {
+    let n = input.chars().count();
+
+    input.
+        chars().
+        zip(input.chars().cycle().skip(n / 2).take(n)).
         filter_map(|(a, b)| if a == b { a.to_digit(10) } else { None }).
         sum()
 }
@@ -24,5 +35,14 @@ mod tests {
         assert_eq!(captcha_sequential("1111"), 4);
         assert_eq!(captcha_sequential("1234"), 0);
         assert_eq!(captcha_sequential("91212129"), 9);
+    }
+
+    #[test]
+    fn test_captcha_halfway() {
+        assert_eq!(captcha_halfway("1212"), 6);
+        assert_eq!(captcha_halfway("1221"), 0);
+        assert_eq!(captcha_halfway("123425"), 4);
+        assert_eq!(captcha_halfway("123123"), 12);
+        assert_eq!(captcha_halfway("12131415"), 4);
     }
 }
