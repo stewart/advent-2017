@@ -11,11 +11,8 @@ fn main() {
 }
 
 fn process(input: &[u32], offset: usize) -> u32 {
-    let n = input.len();
-    let offset = input.iter().cycle().skip(offset).take(n);
-
     input.iter()
-        .zip(offset)
+        .zip(input.iter().cycle().skip(offset))
         .filter_map(|(a, b)| if a == b { Some(a) } else { None })
         .sum()
 }
