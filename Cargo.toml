@@ -1,5 +1,5 @@
 [workspace]
 members = [
   "01-inverse-captcha",
-  "day2",
+  "02-spreadsheet-checksums"
 ]

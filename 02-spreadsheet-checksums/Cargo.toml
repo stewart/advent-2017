@@ -1,5 +1,5 @@
 [package]
-name = "day2"
+name = "02-spreadsheet-checksums"
 version = "0.1.0"
 authors = ["Andrew Stewart <andrew@stwrt.ca>"]
 
