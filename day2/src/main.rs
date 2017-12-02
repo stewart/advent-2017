@@ -20,46 +20,44 @@ const PUZZLE: &'static str = "
 
 
 fn main() {
-    println!("1 -> {:?}", one());
-    println!("2 -> {:?}", two());
+    let puzzle = parse(PUZZLE);
+
+    println!("1 -> {:?}", one(&puzzle));
+    println!("2 -> {:?}", two(&puzzle));
 }
 
-fn one() -> u32 {
-    String::from(PUZZLE).
+fn parse(puzzle: &str) -> Vec<Vec<u32>> {
+    String::from(puzzle).
         trim().
         lines().
         map(|line| trim_and_parse(line)).
-        map(|line| difference(line)).
-        sum::<u32>()
+        collect()
 }
 
-fn two() -> u32 {
-    String::from(PUZZLE).
-        trim().
-        lines().
-        map(|line| trim_and_parse(line)).
-        map(|line| even_division(line)).
-        sum::<u32>()
+fn one(puzzle: &[Vec<u32>]) -> u32 {
+    puzzle.iter().map(|line| difference(line)).sum()
+}
+
+fn two(puzzle: &[Vec<u32>]) -> u32 {
+    puzzle.iter().map(|line| even_division(line)).sum()
 }
 
 fn trim_and_parse(line: &str) -> Vec<u32> {
     line.
         split_whitespace().
         map(|n| n.parse::<u32>().unwrap()).
-        collect::<Vec<u32>>()
+        collect()
 }
 
-fn difference(line: Vec<u32>) -> u32 {
+fn difference(line: &[u32]) -> u32 {
     let min = line.iter().min_by(|x, y| x.cmp(y)).unwrap();
     let max = line.iter().max_by(|x, y| x.cmp(y)).unwrap();
     max - min
 }
 
-fn even_division(line: Vec<u32>) -> u32 {
-    let dup = line.clone();
-
+fn even_division(line: &[u32]) -> u32 {
     for x in line {
-        for &y in &dup {
+        for y in line {
             if x % y == 0 && x !=y {
                 return x / y
             }
@@ -67,4 +65,29 @@ fn even_division(line: Vec<u32>) -> u32 {
     }
 
     0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_one() {
+        assert_eq!(
+            one(&parse("5 1 9 5
+                        7 5 3
+                        2 4 6 8"))
+            , 18
+        )
+    }
+
+    #[test]
+    fn test_two() {
+        assert_eq!(
+            two(&parse("5 9 2 8
+                        9 4 7 3
+                        3 8 6 5"))
+            , 9
+        )
+    }
 }
