@@ -6,24 +6,18 @@ fn main() {
         map(|c| c.to_digit(10).unwrap()).
         collect();
 
-    println!("Sequential: {}", sequential(&input));
-    println!("Halfway: {}", halfway(&input));
+    println!("Sequential: {}", process(&input, 1));
+    println!("Halfway: {}", process(&input, input.len() / 2));
 }
 
-fn sequential(input: &[u32]) -> u32 {
-    let offset = input.iter().cycle().skip(1).take(input.len() + 1);
-    let input = input.iter().zip(offset);
-
-    input.filter(|&(a, b)| a == b).map(|(a, _)| a).sum()
-}
-
-fn halfway(input: &[u32]) -> u32 {
+fn process(input: &[u32], offset: usize) -> u32 {
     let n = input.len();
+    let offset = input.iter().cycle().skip(offset).take(n);
 
-    let offset = input.iter().cycle().skip(n / 2).take(n);
-    let input = input.iter().zip(offset);
-
-    input.filter(|&(a, b)| a == b).map(|(a, _)| a).sum()
+    input.iter()
+        .zip(offset)
+        .filter_map(|(a, b)| if a == b { Some(a) } else { None })
+        .sum()
 }
 
 #[cfg(test)]
@@ -32,18 +26,18 @@ mod tests {
 
     #[test]
     fn test_sequential() {
-        assert_eq!(sequential(&[1, 1, 2, 2]), 3);
-        assert_eq!(sequential(&[1, 1, 1, 1]), 4);
-        assert_eq!(sequential(&[1, 2, 3, 4]), 0);
-        assert_eq!(sequential(&[9, 1, 2, 1, 2, 1, 2, 9]), 9);
+        assert_eq!(process(&[1, 1, 2, 2], 1), 3);
+        assert_eq!(process(&[1, 1, 1, 1], 1), 4);
+        assert_eq!(process(&[1, 2, 3, 4], 1), 0);
+        assert_eq!(process(&[9, 1, 2, 1, 2, 1, 2, 9], 1), 9);
     }
 
     #[test]
     fn test_halfway() {
-        assert_eq!(halfway(&[1, 2, 1, 2]), 6);
-        assert_eq!(halfway(&[1, 2, 2, 1]), 0);
-        assert_eq!(halfway(&[1, 2, 3, 4, 2, 5]), 4);
-        assert_eq!(halfway(&[1, 2, 3, 1, 2, 3]), 12);
-        assert_eq!(halfway(&[1, 2, 1, 3, 1, 4, 1, 5]), 4);
+        assert_eq!(process(&[1, 2, 1, 2], 2), 6);
+        assert_eq!(process(&[1, 2, 2, 1], 2), 0);
+        assert_eq!(process(&[1, 2, 3, 4, 2, 5], 3), 4);
+        assert_eq!(process(&[1, 2, 3, 1, 2, 3], 3), 12);
+        assert_eq!(process(&[1, 2, 1, 3, 1, 4, 1, 5], 4), 4);
     }
 }
