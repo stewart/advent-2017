@@ -20,20 +20,51 @@ const PUZZLE: &'static str = "
 
 
 fn main() {
-    let puzzle = String::from(PUZZLE);
+    println!("1 -> {:?}", one());
+    println!("2 -> {:?}", two());
+}
 
-    let puzzle = puzzle.
+fn one() -> u32 {
+    String::from(PUZZLE).
         trim().
         lines().
-        map(|line| {
-            line.split_whitespace().map(|n| n.parse::<u32>().unwrap()).collect::<Vec<u32>>()
-        }).
-        map(|line| {
-            let max = line.iter().max_by(|x, y| x.cmp(y)).unwrap();
-            let min = line.iter().min_by(|x, y| x.cmp(y)).unwrap();
-            max - min
-        }).
-        sum::<u32>();
+        map(|line| trim_and_parse(line)).
+        map(|line| difference(line)).
+        sum::<u32>()
+}
 
-    println!("{:?}", puzzle);
+fn two() -> u32 {
+    String::from(PUZZLE).
+        trim().
+        lines().
+        map(|line| trim_and_parse(line)).
+        map(|line| even_division(line)).
+        sum::<u32>()
+}
+
+fn trim_and_parse(line: &str) -> Vec<u32> {
+    line.
+        split_whitespace().
+        map(|n| n.parse::<u32>().unwrap()).
+        collect::<Vec<u32>>()
+}
+
+fn difference(line: Vec<u32>) -> u32 {
+    let min = line.iter().min_by(|x, y| x.cmp(y)).unwrap();
+    let max = line.iter().max_by(|x, y| x.cmp(y)).unwrap();
+    max - min
+}
+
+fn even_division(line: Vec<u32>) -> u32 {
+    let dup = line.clone();
+
+    for x in line {
+        for &y in &dup {
+            if x % y == 0 && x !=y {
+                return x / y
+            }
+        }
+    }
+
+    0
 }
