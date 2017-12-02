@@ -30,7 +30,7 @@ fn parse(puzzle: &str) -> Vec<Vec<u32>> {
     String::from(puzzle).
         trim().
         lines().
-        map(|line| trim_and_parse(line)).
+        map(trim_and_parse).
         collect()
 }
 
@@ -50,8 +50,8 @@ fn trim_and_parse(line: &str) -> Vec<u32> {
 }
 
 fn difference(line: &[u32]) -> u32 {
-    let min = line.iter().min_by(|x, y| x.cmp(y)).unwrap();
-    let max = line.iter().max_by(|x, y| x.cmp(y)).unwrap();
+    let min = line.iter().min().unwrap();
+    let max = line.iter().max().unwrap();
     max - min
 }
 
