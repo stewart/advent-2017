@@ -1,5 +1,5 @@
 [package]
-name = "day3"
+name = "03-infinite-memory"
 version = "0.1.0"
 authors = ["Andrew Stewart <andrew@stwrt.ca>"]
 
