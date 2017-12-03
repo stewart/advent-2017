@@ -56,11 +56,10 @@ fn larger_value(n: usize) -> usize {
 
     macro_rules! update_grid {
         () => {
-            let r = fill(&mut grid, x, y);
-            if r > n {
-                return r;
+            match fill(&mut grid, x, y) {
+                r if r > n => { return r },
+                r => { grid[x][y] = r }
             }
-            grid[x][y] = r;
         }
     }
 
