@@ -11,24 +11,12 @@ fn main() {
 }
 
 fn escape(mut jmplist: Vec<i32>, weird_offsets: bool) -> usize {
-    let len = jmplist.len() as i32;
     let mut idx: i32 = 0;
     let mut steps = 0;
 
-    loop {
-        if idx < 0 || idx >= len {
-            break;
-        }
-
-        let val = jmplist[idx as usize];
-
-        if weird_offsets && val >= 3 {
-            jmplist[idx as usize] -= 1;
-        } else {
-            jmplist[idx as usize] += 1;
-        }
-
-        idx += val;
+    while let Some(value) = jmplist.get_mut(idx as usize) {
+        idx += *value;
+        *value += if weird_offsets && *value >= 3 { -1 } else { 1 };
         steps += 1;
     }
 
