@@ -4,5 +4,5 @@ members = [
   "02-spreadsheet-checksums",
   "03-infinite-memory",
   "04-passphrase",
-  "day5"
+  "05-jumplist"
 ]
