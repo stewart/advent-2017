@@ -3,5 +3,6 @@ members = [
   "01-inverse-captcha",
   "02-spreadsheet-checksums",
   "03-infinite-memory",
-  "04-passphrase"
+  "04-passphrase",
+  "day5"
 ]
