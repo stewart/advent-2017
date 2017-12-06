@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 const INPUT: &str = "4  10  4   1   8   4   9   14  5   1   14  15  0   15  3   5";
 
 fn main() {
@@ -6,103 +8,36 @@ fn main() {
         map(|i| i.parse::<usize>().unwrap()).
         collect::<Vec<usize>>();
 
-    println!("1 -> {:?}", one(input.clone()));
-    println!("2 -> {:?}", two(input.clone()));
+    let (cycles, length) = solve(input);
+
+    println!("1 -> {:?}", cycles);
+    println!("2 -> {:?}", length);
 }
 
-fn one(mut banks: Vec<usize>) -> usize {
-    let mut seen_configurations: Vec<Vec<usize>> = vec![banks.clone()];
+fn solve(mut banks: Vec<usize>) -> (usize, usize) {
+    let len = banks.len();
+    let mut seen = HashMap::new();
+    let mut count = 0;
 
-    'outer: loop {
-        let (idx, mut blocks) = banks.iter().cloned().enumerate().rev().max_by_key(|&(_, v)| v).unwrap();
-        banks[idx] = 0;
+    while !seen.contains_key(&banks) {
+        seen.insert(banks.clone(), count);
 
-        for bank in banks.iter_mut().skip(idx + 1) {
-            *bank += 1;
-            blocks -= 1;
+        let (i, &val) = banks.iter().
+            enumerate().
+            max_by_key(|&(i, val)| (val, -(i as isize))).
+            unwrap();
 
-            if blocks == 0 {
-                break;
-            }
+        banks[i] = 0;
+
+        for val in 0..(val as usize) {
+            let idx = (i + 1 + val) % len;
+            banks[idx] += 1;
         }
 
-        if blocks > 0 {
-            'inner: loop {
-                for bank in banks.iter_mut() {
-                    *bank += 1;
-                    blocks -= 1;
-
-                    if blocks == 0 {
-                        break 'inner;
-                    }
-                }
-            }
-        }
-
-        seen_configurations.push(banks.clone());
-
-        let mut a = seen_configurations.clone();
-        a.sort();
-
-        let mut b = a.clone();
-        b.dedup();
-
-        if a != b {
-            break 'outer;
-        }
+        count += 1;
     }
 
-    seen_configurations.len() - 1
-}
-
-fn two(mut banks: Vec<usize>) -> usize {
-    let mut seen_configurations: Vec<Vec<usize>> = vec![banks.clone()];
-
-    fn iter(banks: &mut Vec<usize>, seen_configurations: &mut Vec<Vec<usize>>) {
-        'outer: loop {
-            let (idx, mut blocks) = banks.iter().cloned().enumerate().rev().max_by_key(|&(_, v)| v).unwrap();
-            banks[idx] = 0;
-
-            for bank in banks.iter_mut().skip(idx + 1) {
-                *bank += 1;
-                blocks -= 1;
-
-                if blocks == 0 {
-                    break;
-                }
-            }
-
-            if blocks > 0 {
-                'inner: loop {
-                    for bank in banks.iter_mut() {
-                        *bank += 1;
-                        blocks -= 1;
-
-                        if blocks == 0 {
-                            break 'inner;
-                        }
-                    }
-                }
-            }
-
-            seen_configurations.push(banks.clone());
-
-            let mut a = seen_configurations.clone();
-            a.sort();
-
-            let mut b = a.clone();
-            b.dedup();
-
-            if a != b {
-                break 'outer;
-            }
-        }
-    }
-
-    iter(&mut banks, &mut seen_configurations);
-    seen_configurations = vec![banks.clone()];
-    iter(&mut banks, &mut seen_configurations);
-    seen_configurations.len() - 1
+    (count, count - seen.get(&banks).unwrap())
 }
 
 #[cfg(test)]
@@ -110,12 +45,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_one() {
-        assert_eq!(one(vec![0, 2, 7, 0]), 5);
-    }
-
-    #[test]
-    fn test_two() {
-        assert_eq!(two(vec![0, 2, 7, 0]), 4);
+    fn test_solve() {
+        assert_eq!(solve(vec![0, 2, 7, 0]), (5, 4));
     }
 }
