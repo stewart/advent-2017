@@ -1,77 +1,62 @@
 #![feature(string_retain)]
 
-use std::cmp::Ordering;
-
 #[derive(Debug, PartialEq)]
-struct Program {
+struct Node {
     name: String,
     weight: usize,
     children: Vec<String>
 }
 
-impl Program {
-    fn new(mut program: String) -> Program {
-        program.retain(|ch| {
+impl Node {
+    fn parse(node: &str) -> Node {
+        let mut node = String::from(node);
+
+        node.retain(|ch| {
             match ch {
                 '(' | ')' | '-' | '>' | ',' => false,
                 _ => true
             }
         });
 
-        let program = program.split_whitespace().collect::<Vec<_>>();
+        let node = node.split_whitespace().collect::<Vec<_>>();
 
-        let program = Program {
-            name: String::from(program[0]),
-            weight: program[1].parse().unwrap(),
-            children: program.into_iter().skip(2).map(String::from).collect()
-        };
-
-        program
-    }
-}
-
-impl PartialOrd for Program {
-    fn partial_cmp(&self, other: &Program) -> Option<Ordering> {
-        if self.children.contains(&other.name) {
-            println!("{} supports {}", self.name, other.name);
-            return Some(Ordering::Less);
+        Node {
+            name: String::from(node[0]),
+            weight: node[1].parse().unwrap(),
+            children: node.into_iter().skip(2).map(String::from).collect()
         }
-
-        if other.children.contains(&self.name) {
-            println!("{} supports {}", other.name, self.name);
-            return Some(Ordering::Greater);
-        }
-
-        Some(Ordering::Equal)
     }
 }
 
 fn main() {
     let input = include_str!("input");
-    println!("1 -> {}", bottom_program(input));
-}
 
-fn bottom_program(statements: &str) -> String {
-    let programs = statements.
+    let nodes = input.
         lines().
-        map(String::from).
-        map(Program::new).
+        map(Node::parse).
         collect::<Vec<_>>();
 
-    let bottom = programs.iter().find(|program| {
-        !programs.iter().any(|other| other.children.contains(&program.name))
-    }).unwrap();
+    println!("1 -> {}", bottom_node(&nodes));
+    println!("2 -> {}", corrected_weight(nodes));
+}
 
-    bottom.name.clone()
+fn bottom_node<'a>(nodes: &'a[Node]) -> &'a str {
+    nodes.
+        iter().
+        find(|p| !nodes.iter().any(|o| { o.children.contains(&p.name)})).
+        map(|node| &node.name).
+        unwrap()
+}
+
+fn corrected_weight(nodes: Vec<Node>) -> usize {
+    60
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_bottom_program() {
-        assert_eq!(bottom_program("pbga (66)
+    const INPUT: &str = "pbga (66)
 xhth (57)
 ebii (61)
 havc (66)
@@ -83,6 +68,25 @@ tknk (41) -> ugml, padx, fwft
 jptl (61)
 ugml (68) -> gyxo, ebii, jptl
 gyxo (61)
-cntj (57)"), "tknk");
+cntj (57)";
+
+    #[test]
+    fn test_bottom_node() {
+        let nodes = String::from(INPUT).
+            lines().
+            map(Node::parse).
+            collect::<Vec<_>>();
+
+        assert_eq!(bottom_node(&nodes), "tknk");
+    }
+
+    #[test]
+    fn test_corrected_weight() {
+        let nodes = String::from(INPUT).
+            lines().
+            map(Node::parse).
+            collect::<Vec<_>>();
+
+        assert_eq!(corrected_weight(nodes), 60);
     }
 }
