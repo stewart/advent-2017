@@ -1,9 +1,10 @@
 fn main() {
-    println!("Hello, world!");
+    let input = include_str!("input");
+    println!("1 -> {}", bottom_program(input));
 }
 
-fn something() -> usize {
-    1
+fn bottom_program(statements: &str) -> &str {
+    ""
 }
 
 #[cfg(test)]
@@ -11,7 +12,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_something() {
-        assert_eq!(something(), 1);
+    fn test_bottom_program() {
+        assert_eq!(bottom_program(""), "");
     }
 }
