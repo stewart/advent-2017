@@ -25,9 +25,10 @@ fn main() {
 
     let mut registers = HashMap::new();
 
-    run(&mut registers, instructions);
+    let max = run(&mut registers, instructions);
 
-    println!("1 -> {:?}", registers.values().max());
+    println!("1 -> {:?}", registers.values().max().unwrap());
+    println!("2 -> {:?}", max);
 }
 
 fn parse(instructions: &str) -> Vec<Instruction> {
@@ -72,7 +73,9 @@ fn parse(instructions: &str) -> Vec<Instruction> {
         }).collect()
 }
 
-fn run(registers: &mut HashMap<String, isize>, instructions: Vec<Instruction>) {
+fn run(registers: &mut HashMap<String, isize>, instructions: Vec<Instruction>) -> isize {
+    let mut max: isize = 0;
+
     for instruction in instructions {
         let ref operation = instruction.0;
         let ref condition = instruction.1;
@@ -113,7 +116,15 @@ fn run(registers: &mut HashMap<String, isize>, instructions: Vec<Instruction>) {
                 },
             }
         }
+
+
+        let new_max = registers.values().max().unwrap();
+        if *new_max > max {
+            max = *new_max
+        }
     }
+
+    max
 }
 
 #[cfg(test)]
