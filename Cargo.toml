@@ -6,5 +6,6 @@ members = [
   "04-passphrase",
   "05-jumplist",
   "06-infinite-loop",
-  "day7"
+  "day7",
+  "day8"
 ]
