@@ -1,12 +1,40 @@
 use std::collections::HashMap;
 
-#[derive(Debug)]
+type Registers = HashMap<String, isize>;
+
+use Op::*;
+use Cond::*;
+
 enum Op {
     Inc(String, isize),
     Dec(String, isize)
 }
 
-#[derive(Debug)]
+impl Op {
+    fn parse(symbol: &str, register: String, value: isize) -> Op {
+        match symbol {
+            "inc" => Inc(register, value),
+            "dec" =>  Dec(register, value),
+            _ => panic!("unexpected op: {}", symbol)
+        }
+    }
+
+    fn apply(&self, registers: &mut Registers) {
+        let register = match *self {
+            Inc(ref r, _) | Dec(ref r, _) => r
+        };
+
+        let register = registers.
+            entry(register.to_string()).
+            or_insert(0);
+
+        match *self {
+            Inc(_, value) => *register += value,
+            Dec(_, value) => *register -= value
+        };
+    }
+}
+
 enum Cond {
     Eq(String, isize),
     NotEq(String, isize),
@@ -16,7 +44,44 @@ enum Cond {
     LessThanOrEqualTo(String, isize),
 }
 
-#[derive(Debug)]
+impl Cond {
+    fn parse(symbol: &str, register: String, value: isize) -> Cond {
+        match symbol {
+            "==" => Eq(register, value),
+            "!=" => NotEq(register, value),
+            ">" => GreaterThan(register, value),
+            "<" => LessThan(register, value),
+            ">=" => GreaterThanOrEqualTo(register, value),
+            "<=" => LessThanOrEqualTo(register, value),
+            _ => panic!("unexpected condition: {}", symbol)
+        }
+    }
+
+    fn test(&self, registers: &mut Registers) -> bool {
+        let register = match *self {
+            Eq(ref r, _) |
+            NotEq(ref r, _) |
+            GreaterThan(ref r, _) |
+            LessThan(ref r, _) |
+            GreaterThanOrEqualTo(ref r, _) |
+            LessThanOrEqualTo(ref r, _) => r
+        };
+
+        let register = registers.
+            entry(register.to_string()).
+            or_insert(0);
+
+        match *self {
+            Eq(_, value)                   => *register == value,
+            NotEq(_, value)                => *register != value,
+            GreaterThan(_, value)          => *register > value,
+            LessThan(_, value)             => *register < value,
+            GreaterThanOrEqualTo(_, value) => *register >= value,
+            LessThanOrEqualTo(_, value)    => *register <= value
+        }
+    }
+}
+
 struct Instruction(Op, Cond);
 
 fn main() {
@@ -43,11 +108,7 @@ fn parse(instructions: &str) -> Vec<Instruction> {
             let value = line.next().expect("Operation Value");
             let value = value.parse::<isize>().expect("Parsing value");
 
-            let op = match op {
-                "inc" => Op::Inc(register, value),
-                "dec" =>  Op::Dec(register, value),
-                _ => panic!("Unexpected operation received")
-            };
+            let op = Op::parse(op, register, value);
 
             line.next().expect("if");
 
@@ -59,64 +120,22 @@ fn parse(instructions: &str) -> Vec<Instruction> {
             let value = line.next().expect("Conditional value");
             let value = value.parse::<isize>().expect("Parsing conditional");
 
-            let cond = match cond {
-                "==" => Cond::Eq(register, value),
-                "!=" => Cond::NotEq(register, value),
-                ">" => Cond::GreaterThan(register, value),
-                "<" => Cond::LessThan(register, value),
-                ">=" => Cond::GreaterThanOrEqualTo(register, value),
-                "<=" => Cond::LessThanOrEqualTo(register, value),
-                _ => panic!("Unexpected condition received")
-            };
+            let cond = Cond::parse(cond, register, value);
 
             Instruction(op, cond)
         }).collect()
 }
 
-fn run(registers: &mut HashMap<String, isize>, instructions: Vec<Instruction>) -> isize {
+fn run(registers: &mut Registers, instructions: Vec<Instruction>) -> isize {
     let mut max: isize = 0;
 
     for instruction in instructions {
         let ref operation = instruction.0;
         let ref condition = instruction.1;
 
-        let (register, comparison) = match condition {
-            &Cond::Eq(ref register, value) => (register, value),
-            &Cond::NotEq(ref register, value) => (register, value),
-            &Cond::GreaterThan(ref register, value) => (register, value),
-            &Cond::LessThan(ref register, value) => (register, value),
-            &Cond::GreaterThanOrEqualTo(ref register, value) => (register, value),
-            &Cond::LessThanOrEqualTo(ref register, value) => (register, value)
-        };
-
-
-        let conditional_passes = {
-            let value = registers.entry(register.clone()).or_insert(0);
-
-            match condition {
-                &Cond::Eq(_, _) => { *value == comparison },
-                &Cond::NotEq(_, _) => { *value != comparison }
-                &Cond::GreaterThan(_, _) => { *value > comparison },
-                &Cond::LessThan(_, _) =>  { *value < comparison },
-                &Cond::GreaterThanOrEqualTo(_, _) => { *value >= comparison },
-                &Cond::LessThanOrEqualTo(_, _) => { *value <= comparison }
-            }
-        };
-
-        if conditional_passes {
-            match operation {
-                &Op::Inc(ref register, value) => {
-                    let register = registers.entry(register.clone()).or_insert(0);
-                    *register += value
-                },
-
-                &Op::Dec(ref register, value) => {
-                    let register = registers.entry(register.clone()).or_insert(0);
-                    *register -= value
-                },
-            }
+        if condition.test(registers) {
+            operation.apply(registers);
         }
-
 
         let new_max = registers.values().max().unwrap();
         if *new_max > max {
