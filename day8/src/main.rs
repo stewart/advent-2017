@@ -137,10 +137,7 @@ fn run(registers: &mut Registers, instructions: Vec<Instruction>) -> isize {
             operation.apply(registers);
         }
 
-        let new_max = registers.values().max().unwrap();
-        if *new_max > max {
-            max = *new_max
-        }
+        max = max.max(*registers.values().max().expect("maximum value"));
     }
 
     max
