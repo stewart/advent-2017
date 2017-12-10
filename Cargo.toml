@@ -8,5 +8,6 @@ members = [
   "06-infinite-loop",
   "day7",
   "day8",
-  "day9"
+  "day9",
+  "day10"
 ]
