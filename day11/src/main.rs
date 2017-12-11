@@ -20,6 +20,7 @@ impl Add for Point {
 fn main() {
     let input = include_str!("input").trim();
     println!("1 -> {}", part1(input));
+    println!("2 -> {}", part2(input));
 }
 
 fn part1(input: &str) -> isize {
@@ -40,6 +41,30 @@ fn part1(input: &str) -> isize {
         });
 
     end.distance()
+}
+
+fn part2(input: &str) -> isize {
+    let (_, max) = input.
+        split(",").
+        fold((Point(0, 0), 0), |(position, max), direction| {
+            let new = position + match direction {
+                "nw" => Point(-1, 1),
+                "n" => Point(0, 1),
+                "ne" => Point(1, 0),
+
+                "sw" => Point(-1, 0),
+                "s" => Point(0, -1),
+                "se" => Point(1, -1),
+
+                _ => panic!("Unexpected direction - {}", direction)
+            };
+
+            let max = max.max(new.distance());
+
+            (new, max)
+        });
+
+    max
 }
 
 #[cfg(test)]
