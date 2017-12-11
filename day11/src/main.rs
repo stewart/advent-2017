@@ -19,32 +19,13 @@ impl Add for Point {
 
 fn main() {
     let input = include_str!("input").trim();
-    println!("1 -> {}", part1(input));
-    println!("2 -> {}", part2(input));
+    let (part1, part2) = solve(input);
+    println!("1 -> {}", part1);
+    println!("2 -> {}", part2);
 }
 
-fn part1(input: &str) -> isize {
-    let end = input.
-        split(",").
-        fold(Point(0, 0), |position, direction| {
-            position + match direction {
-                "nw" => Point(-1, 1),
-                "n" => Point(0, 1),
-                "ne" => Point(1, 0),
-
-                "sw" => Point(-1, 0),
-                "s" => Point(0, -1),
-                "se" => Point(1, -1),
-
-                _ => panic!("Unexpected direction - {}", direction)
-            }
-        });
-
-    end.distance()
-}
-
-fn part2(input: &str) -> isize {
-    let (_, max) = input.
+fn solve(input: &str) -> (isize, isize) {
+    let (position, max) = input.
         split(",").
         fold((Point(0, 0), 0), |(position, max), direction| {
             let new = position + match direction {
@@ -64,7 +45,7 @@ fn part2(input: &str) -> isize {
             (new, max)
         });
 
-    max
+    (position.distance(), max)
 }
 
 #[cfg(test)]
@@ -72,10 +53,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_part1() {
-        assert_eq!(part1("ne,ne,ne"), 3);
-        assert_eq!(part1("ne,ne,sw,sw"), 0);
-        assert_eq!(part1("ne,ne,s,s"), 2);
-        assert_eq!(part1("se,sw,se,sw,sw"), 3);
+    fn test_solve() {
+        assert_eq!(solve("ne,ne,ne"), (3, 3));
+        assert_eq!(solve("ne,ne,sw,sw"), (0, 2));
+        assert_eq!(solve("ne,ne,s,s"), (2, 2));
+        assert_eq!(solve("se,sw,se,sw,sw"), (3, 3));
     }
 }
