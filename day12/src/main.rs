@@ -18,16 +18,11 @@ fn main() {
 fn parse(input: &str) -> (usize, Vec<usize>) {
     let mut result = input.split("<->").map(str::trim);
 
-    let id = result.
-        next().expect("Program ID").
-        parse::<usize>().expect("Program ID");
+    let id = result.next().map(|id| id.parse().unwrap()).expect("Program ID");
 
-    let contacts = result.
-        next().expect("Contacts").
-        split(",").
-        map(str::trim).
-        map(|i| i.parse::<usize>().unwrap()).
-        collect::<Vec<usize>>();
+    let contacts = result.next().map(|s| {
+        s.split(",").map(str::trim).map(|i| i.parse().unwrap()).collect()
+    }).expect("Contacts");
 
     (id, contacts)
 }
@@ -52,7 +47,7 @@ fn count_groups(programs: &Programs) -> usize {
     let mut programs = programs.clone();
     let mut groups = 0;
 
-    while let Some(id) = programs.keys().cloned().next() {
+    while let Some(&id) = programs.keys().next() {
         for neighbour in neighbours(&programs, id) {
             programs.remove(&neighbour);
         }
@@ -61,9 +56,4 @@ fn count_groups(programs: &Programs) -> usize {
     }
 
     groups
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
 }
