@@ -11,7 +11,8 @@ fn main() {
         map(parse).
         for_each(|(id, contacts)| { programs.entry(id).or_insert(contacts); });
 
-    println!("1 -> {:?}", neighbours(&programs, 0));
+    println!("1 -> {:?}", neighbours(&programs, 0).len());
+    println!("2 -> {:?}", count_groups(&programs));
 }
 
 fn parse(input: &str) -> (usize, Vec<usize>) {
@@ -31,25 +32,35 @@ fn parse(input: &str) -> (usize, Vec<usize>) {
     (id, contacts)
 }
 
-fn neighbours(programs: &Programs, id: usize) -> usize {
+fn neighbours(programs: &Programs, id: usize) -> HashSet<usize> {
     let mut group = HashSet::new();
     let mut queue = VecDeque::new();
 
     queue.push_back(id);
 
     while let Some(id) = queue.pop_front() {
-        if group.contains(&id) {
-            continue;
-        }
-
-        group.insert(id);
-
-        for entry in programs.get(&id).expect("Map entry") {
-            queue.push_back(*entry);
+        if group.insert(id) {
+            let programs = programs.get(&id).unwrap();
+            queue.extend(programs.iter().cloned());
         }
     }
 
-    group.len()
+    group
+}
+
+fn count_groups(programs: &Programs) -> usize {
+    let mut programs = programs.clone();
+    let mut groups = 0;
+
+    while let Some(id) = programs.keys().cloned().next() {
+        for neighbour in neighbours(&programs, id) {
+            programs.remove(&neighbour);
+        }
+
+        groups += 1;
+    }
+
+    groups
 }
 
 #[cfg(test)]
