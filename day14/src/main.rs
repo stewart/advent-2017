@@ -1,25 +1,54 @@
 extern crate day10;
 
+use std::collections::{HashSet, VecDeque};
+
 use day10::knots;
 
 const INPUT: &str = "vbqugkhl";
 
+type Grid = HashSet<(isize, isize)>;
+
 fn main() {
     let grid = grid(INPUT);
-
-    let squares_used: usize = grid.iter().
-        map(|row| row.chars().filter(|&c| c == '1').count()).
-        sum();
-
-    println!("{:?}", squares_used);
+    println!("1 -> {}", grid.len());
+    println!("2 -> {}", regions(&grid));
 }
 
-fn grid(input: &str) -> Vec<String> {
-    (0..128).map(|n| {
-        let input = format!("{}-{}", input, n);
-        let row = String::new();
-        knot(&input).iter().fold(row, |row, n| format!("{}{:08b}", row, n))
-    }).collect()
+fn grid(input: &str) -> Grid {
+    (0..128).fold(HashSet::new(), |mut set, x| {
+        let input = format!("{}-{}", input, x);
+
+        knot(&input).iter().
+            fold(String::new(), |row, n| format!("{}{:08b}", row, n)).
+            chars().
+            enumerate().
+            filter(|&(_, ch)| ch == '1').
+            map(|(y, _)| (x as isize, y as isize)).
+            for_each(|coords| { set.insert(coords); });
+
+        set
+    })
+}
+
+fn regions(grid: &Grid) -> usize {
+    let mut grid = grid.clone();
+    let mut queue = VecDeque::new();
+    let mut regions = 0;
+
+    while let Some(&key) = grid.iter().next() {
+        grid.remove(&key);
+        queue.push_back(key);
+        regions += 1;
+
+        while let Some((x, y)) = queue.pop_front() {
+            queue.extend(grid.take(&(x - 1, y)));
+            queue.extend(grid.take(&(x, y - 1)));
+            queue.extend(grid.take(&(x + 1, y)));
+            queue.extend(grid.take(&(x, y + 1)));
+        }
+    }
+
+    regions
 }
 
 fn knot(input: &str) -> Vec<usize> {
