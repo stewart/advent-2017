@@ -1,4 +1,6 @@
-const LEN: usize = 256;
+extern crate day10;
+
+use day10::knots;
 
 fn main() {
     let input = include_str!("input").trim();
@@ -30,23 +32,4 @@ fn part2(input: &str) -> String {
         collect::<Vec<_>>();
 
     list.join("")
-}
-
-fn knots(input: &[usize], rounds: usize) -> Vec<usize> {
-    let mut list = (0..LEN).collect::<Vec<_>>();
-    let mut current = 0;
-    let mut skip = 0;
-
-    for _ in 0..rounds {
-        for n in input {
-            for i in 0..n / 2 {
-                list.swap((current + i) % LEN, (current + n - 1 - i) % LEN);
-            }
-
-            current += n + skip;
-            skip += 1;
-        }
-    }
-
-    list
 }
