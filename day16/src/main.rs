@@ -1,3 +1,5 @@
+#![feature(slice_rotate)]
+
 use Op::*;
 
 #[derive(Debug)]
@@ -54,11 +56,9 @@ impl Op {
                 dancers.swap(a, b)
             },
             Spin(n) => {
-                let d = dancers.clone();
-                let (a, b) = d.split_at(d.len() - n);
-                let mut b = b.to_vec();
-                b.extend_from_slice(a);
-                dancers = b;
+                let n = dancers.len() - n;
+                let dancers = dancers.as_mut_slice();
+                dancers.rotate(n);
             }
         }
 
@@ -76,6 +76,7 @@ fn main() {
         collect();
 
     part1(&operations, &dancers);
+    part2(&operations, &dancers);
 }
 
 fn part1(operations: &Vec<Op>, dancers: &Vec<char>) {
@@ -85,5 +86,34 @@ fn part1(operations: &Vec<Op>, dancers: &Vec<char>) {
         dancers = op.apply(dancers);
     }
 
-    println!("Dancers: {:?}", dancers.iter().collect::<String>());
+    println!("1 -> {:?}", dancers.iter().collect::<String>());
+}
+
+fn part2(operations: &Vec<Op>, dancers: &Vec<char>) {
+    let mut dancers = dancers.clone();
+
+    let initial = dancers.clone();
+    let mut cycle = 1;
+
+    loop {
+        for op in operations {
+            dancers = op.apply(dancers);
+        }
+
+        if (dancers == initial) {
+            break;
+        }
+
+        cycle += 1;
+    }
+
+    println!("Cycle found! {}", cycle);
+
+    for _ in 0..(1_000_000_000 % cycle) {
+        for op in operations {
+            dancers = op.apply(dancers);
+        }
+    }
+
+    println!("2 -> {:?}", dancers.iter().collect::<String>());
 }
