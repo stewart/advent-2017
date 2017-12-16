@@ -1,71 +1,29 @@
-struct Generator {
-    value: usize,
-    factor: usize
-}
-
-impl Generator {
-    fn new(value: usize, factor: usize) -> Generator {
-        Generator { value: value, factor: factor }
-    }
-
-    fn next(&mut self) -> u16 {
-        self.value = (self.value * self.factor) % 2147483647;
-        self.value as u16
-    }
-}
-
-struct PickyGenerator {
-    value: usize,
-    factor: usize,
-    multiplier: usize
-}
-
-impl PickyGenerator {
-    fn new(value: usize, factor: usize, multiplier: usize) -> PickyGenerator {
-        PickyGenerator { value: value, factor: factor, multiplier: multiplier }
-    }
-
-    fn next(&mut self) -> u16 {
-        loop {
-            self.value = (self.value * self.factor) % 2147483647;
-            if self.value % self.multiplier == 0 {
-                return self.value as u16;
-            }
-        }
-    }
-}
-
 fn main() {
-    println!("1 -> {}", part1());
-    println!("2 -> {}", part2());
+    println!("1 -> {}", part1(65, 48271));
+    println!("2 -> {}", part2(65, 48271));
 }
 
-fn part1() -> usize {
-    let mut a = Generator::new(116, 16807);
-    let mut b = Generator::new(299, 48271);
-
-    let mut matches = 0;
-
-    for _ in 0..40_000_000 {
-        if a.next() == b.next() {
-            matches += 1;
-        }
-    }
-
-    matches
+fn part1(mut a: usize, mut b: usize) -> usize {
+    (0..40_000_000).filter(|_| {
+        a = (a * 16807) % 2147483647;
+        b = (b * 48271) % 2147483647;
+        a as u16 == b as u16
+    }).count()
 }
 
-fn part2() -> usize {
-    let mut a = PickyGenerator::new(116, 16807, 4);
-    let mut b = PickyGenerator::new(299, 48271, 8);
+fn part2(mut a: usize, mut b: usize) -> usize {
+    (0..5_000_000).filter(|_| {
+        a = (a * 16807) % 2147483647;
+        b = (b * 48271) % 2147483647;
 
-    let mut matches = 0;
-
-    for _ in 0..5_000_000 {
-        if a.next() == b.next() {
-            matches += 1;
+        while a % 4 != 0 {
+            a = (a * 16807) % 2147483647;
         }
-    }
 
-    matches
+        while b % 8 != 0 {
+            b = (b * 48271) % 2147483647;
+        }
+
+        a as u16 == b as u16
+    }).count()
 }
