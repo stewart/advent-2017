@@ -1,16 +1,15 @@
 #![feature(slice_rotate)]
 
+const DANCERS: [char; 16] = [
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p'
+];
+
 use Op::*;
 
 #[derive(Debug)]
 enum Op {
-    // Move programs from back to front
     Spin(usize),
-
-    // Programs at A/B swap places
     Exchange(usize, usize),
-
-    // Programs at A/B swap places
     Partner(char, char)
 }
 
@@ -22,21 +21,24 @@ impl Op {
         let input: String = input.collect();
         let mut input = input.split("/");
 
+        let parse = |n: &str| -> usize { n.parse().unwrap() };
+        let get_char = |s: &str| -> Option<char> { s.chars().next() };
+
         match op {
             'x' => {
-                let a: usize = input.next().map(|n| n.parse().unwrap()).expect("Partner A");
-                let b: usize = input.next().map(|n| n.parse().unwrap()).expect("Partner B");
+                let a: usize = input.next().map(&parse).expect("Partner A");
+                let b: usize = input.next().map(&parse).expect("Partner B");
                 Exchange(a, b)
             },
 
             'p' => {
-                let a = input.next().and_then(|ch| ch.chars().next()).expect("Partner A");
-                let b = input.next().and_then(|ch| ch.chars().next()).expect("Partner B");
+                let a = input.next().and_then(&get_char).expect("Partner A");
+                let b = input.next().and_then(&get_char).expect("Partner B");
                 Partner(a, b)
             },
 
             's' => {
-                let n: usize = input.next().map(|n| n.parse().unwrap()).expect("Spin Count");
+                let n: usize = input.next().map(&parse).expect("Spin Count");
                 Spin(n)
             }
 
@@ -44,76 +46,79 @@ impl Op {
         }
     }
 
-    fn apply(&self, mut dancers: Vec<char>) -> Vec<char> {
+    fn apply(&self, dancers: &mut Vec<char>) {
         match *self {
             Exchange(a, b) => {
                 let mut dancers = dancers.as_mut_slice();
                 dancers.swap(a, b);
             },
+
             Partner(a, b) => {
-                let (a, _) = dancers.iter().enumerate().find(|&(_, c)| *c == a).unwrap();
-                let (b, _) = dancers.iter().enumerate().find(|&(_, c)| *c == b).unwrap();
+                let a = dancers.iter().position(|&c| c == a).unwrap();
+                let b = dancers.iter().position(|&c| c == b).unwrap();
                 dancers.swap(a, b)
             },
+
             Spin(n) => {
-                let n = dancers.len() - n;
+                let idx = dancers.len() - n;
                 let dancers = dancers.as_mut_slice();
-                dancers.rotate(n);
+                dancers.rotate(idx);
             }
         }
-
-        dancers
     }
 }
+
+type Operations = Vec<Op>;
 
 fn main() {
-    let dancers = vec!['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p'];
+    let operations: Operations = load_operations();
 
-    let operations: Vec<Op> = include_str!("input").
-        trim().
-        split(",").
-        map(Op::parse).
-        collect();
-
-    part1(&operations, &dancers);
-    part2(&operations, &dancers);
+    println!("1 -> {}", part1(&operations));
+    println!("2 -> {}", part2(&operations));
 }
 
-fn part1(operations: &Vec<Op>, dancers: &Vec<char>) {
-    let mut dancers = dancers.clone();
-
-    for op in operations {
-        dancers = op.apply(dancers);
-    }
-
-    println!("1 -> {:?}", dancers.iter().collect::<String>());
+fn load_operations() -> Operations {
+    include_str!("input").trim().split(",").map(Op::parse).collect()
 }
 
-fn part2(operations: &Vec<Op>, dancers: &Vec<char>) {
-    let mut dancers = dancers.clone();
-
-    let initial = dancers.clone();
+fn cycle_count(ops: &Operations) -> usize {
+    let initial = DANCERS.to_vec();
+    let mut dancers = initial.clone();
     let mut cycle = 1;
 
     loop {
-        for op in operations {
-            dancers = op.apply(dancers);
+        for op in ops {
+            op.apply(&mut dancers);
         }
 
-        if (dancers == initial) {
+        if dancers == initial {
             break;
+        } else {
+            cycle += 1;
         }
-
-        cycle += 1;
     }
 
-    println!("Cycle found! {}", cycle);
+    cycle
+}
 
-    for _ in 0..(1_000_000_000 % cycle) {
+fn part1(operations: &Operations) -> String {
+    let mut dancers = DANCERS.to_vec();
+
+    for op in operations {
+        op.apply(&mut dancers);
+    }
+
+    dancers.into_iter().collect()
+}
+
+fn part2(operations: &Operations) -> String {
+    let mut dancers = DANCERS.to_vec();
+
+    for _ in 0..(1_000_000_000 % cycle_count(operations)) {
         for op in operations {
-            dancers = op.apply(dancers);
+            op.apply(&mut dancers);
         }
     }
 
-    println!("2 -> {:?}", dancers.iter().collect::<String>());
+    dancers.into_iter().collect()
 }
