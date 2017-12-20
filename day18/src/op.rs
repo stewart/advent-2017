@@ -1,9 +1,19 @@
 use std::str::FromStr;
+use std::collections::HashMap;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Value {
     Reg(char),
     Const(isize)
+}
+
+impl Value {
+    fn abs(&self, registers: &HashMap<char, isize>) -> isize {
+        match *self {
+            Value::Reg(ch) => registers.get(&ch).cloned().unwrap_or(0),
+            Value::Const(n) => n
+        }
+    }
 }
 
 impl FromStr for Value {
@@ -25,7 +35,7 @@ impl FromStr for Value {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Op {
     Add(Value, Value),
     Jgz(Value, Value),
