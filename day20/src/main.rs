@@ -1,4 +1,5 @@
 use std::str::FromStr;
+use std::collections::HashMap;
 
 type XYZ = (isize, isize, isize);
 
@@ -7,6 +8,8 @@ fn add(a: XYZ, b: XYZ) -> XYZ {
     let (bx, by, bz) = b;
     (ax + bx, ay + by, az + bz)
 }
+
+type Positions = HashMap<XYZ, usize>;
 
 #[derive(Debug, Eq, PartialEq)]
 struct Particle {
@@ -80,6 +83,34 @@ fn main() {
         unwrap();
 
     println!("1 -> {}", idx);
+
+    // Part 2
+    {
+        let mut particles = particles;
+
+        loop {
+            let mut positions: Positions = HashMap::new();
+
+            for particle in particles.iter_mut() {
+                particle.tick();
+                let entry = positions.entry(particle.position).or_insert(0);
+                *entry += 1;
+            }
+
+            let collisions: Vec<XYZ> = positions.iter().
+                filter(|&(_, val)| *val > 1).
+                map(|(key, _)| key.clone()).
+                collect();
+
+            if collisions.len() > 0 {
+                particles = particles.into_iter().filter(|p| {
+                    !collisions.contains(&p.position)
+                }).collect();
+            }
+
+            println!("{:?}", positions.len());
+        }
+    }
 }
 
 #[cfg(test)]
