@@ -1,16 +1,29 @@
 use std::str::FromStr;
 
+type XYZ = (isize, isize, isize);
+
+fn add(a: XYZ, b: XYZ) -> XYZ {
+    let (ax, ay, az) = a;
+    let (bx, by, bz) = b;
+    (ax + bx, ay + by, az + bz)
+}
+
 #[derive(Debug, Eq, PartialEq)]
 struct Particle {
-    position: (isize, isize, isize),
-    acceleration: (isize, isize, isize),
-    velocity: (isize, isize, isize),
+    position: XYZ,
+    acceleration: XYZ,
+    velocity: XYZ,
 }
 
 impl Particle {
     fn absolute_acceleration(&self) -> usize {
         let (ax, ay, az) = self.acceleration;
         (ax.abs() + ay.abs() + az.abs()) as usize
+    }
+
+    fn tick(&mut self) {
+        self.velocity = add(self.velocity, self.acceleration);
+        self.position = add(self.position, self.velocity);
     }
 }
 
@@ -83,5 +96,25 @@ mod tests {
                 velocity: (14, 39, -11)
             })
         )
+    }
+
+    #[test]
+    fn test_particle_tick() {
+        let particle = "p=<-13053,-6894,1942>, v=<14,39,-11>, a=<16,7,-2>";
+        let mut particle: Particle = particle.parse().unwrap();
+
+        assert_eq!(particle, Particle {
+            position: (-13053, -6894, 1942),
+            acceleration: (16, 7, -2),
+            velocity: (14, 39, -11)
+        });
+
+        particle.tick();
+
+        assert_eq!(particle, Particle {
+            position: (-13023, -6848, 1929),
+            acceleration: (16, 7, -2),
+            velocity: (30, 46, -13)
+        });
     }
 }
