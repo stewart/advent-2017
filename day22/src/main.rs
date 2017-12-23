@@ -6,7 +6,7 @@ fn main() {
     let input = include_str!("input").trim();
     let mut cluster: Cluster = input.parse().unwrap();
 
-    for _ in 0..10_000 {
+    for _ in 0..10_000_000 {
         cluster.tick();
     }
 
@@ -14,7 +14,7 @@ fn main() {
 }
 
 #[derive(Clone, PartialEq)]
-enum State { Clean, Infected }
+enum State { Clean, Infected, Weakened, Flagged }
 
 #[derive(Clone)]
 enum Heading { Up, Down, Left, Right }
@@ -94,23 +94,36 @@ impl Cluster {
             self.data.get(&self.virus.coordinates).cloned().unwrap_or(Clean)
         };
 
-        if status == Infected {
-            self.virus.turn_right();
-        } else {
-            self.virus.turn_left();
+        match status {
+            Clean => {
+                self.virus.turn_left()
+            }
+
+            Weakened => {
+            }
+
+            Infected => {
+                self.virus.turn_right()
+            }
+
+            Flagged => {
+                self.virus.turn_right();
+                self.virus.turn_right();
+            }
         }
 
-        match status {
-            Infected => {
-                self.data.insert(self.virus.coordinates, Clean);
-            }
-
-            Clean => {
-                self.data.insert(self.virus.coordinates, Infected);
-                self.infections += 1;
-            }
+        let status = match status {
+            Clean => Weakened,
+            Weakened => Infected,
+            Infected => Flagged,
+            Flagged => Clean
         };
 
+        if status == Infected {
+            self.infections += 1;
+        }
+
+        self.data.insert(self.virus.coordinates, status);
         self.virus.move_forward();
     }
 }
@@ -156,6 +169,8 @@ impl fmt::Display for Cluster {
 
                 let value = match self.data.get(&(x, y)) {
                     Some(&State::Infected) => '#',
+                    Some(&State::Weakened) => 'W',
+                    Some(&State::Flagged) => 'F',
                     _ => '.'
                 };
 
