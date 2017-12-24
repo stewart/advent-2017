@@ -2,14 +2,15 @@ mod op;
 
 use op::{Op, Value};
 
-use std::collections::{HashMap};
+use std::collections::{HashMap, VecDeque};
 
 #[derive(Debug)]
 struct Cpu {
     registers: HashMap<char, isize>,
     operations: Vec<Op>,
+    queue: VecDeque<isize>,
     idx: usize,
-    played: isize,
+    sent: usize,
 }
 
 impl Cpu {
@@ -25,8 +26,9 @@ impl Cpu {
         Cpu {
             registers: registers,
             operations: operations,
+            queue: VecDeque::new(),
             idx: 0,
-            played: 0,
+            sent: 0,
         }
     }
 
@@ -45,7 +47,7 @@ impl Cpu {
         self.registers.insert(register, value);
     }
 
-    fn apply(&mut self, op: Op) {
+    fn apply(&mut self, op: Op, other: &mut Self) {
         use Op::*;
         use Value::*;
 
@@ -76,11 +78,18 @@ impl Cpu {
                 self.idx += 1;
             }
 
-            Rcv(a) => {
-                if self.get(a) != 0 {
-                    println!("Recovered: {}", self.played);
-                }
+            Snd(a) => {
+                let value = self.get(a);
+                other.queue.push_back(value);
+                self.sent += 1;
                 self.idx += 1;
+            }
+
+            Rcv(Reg(a)) => {
+                if let Some(value) = self.queue.pop_front() {
+                    self.set(a, value);
+                    self.idx += 1;
+                }
             }
 
             Set(Reg(a), b) => {
@@ -89,21 +98,13 @@ impl Cpu {
                 self.idx += 1;
             }
 
-            Snd(a) => {
-                let value = self.get(a);
-                self.played = value;
-                self.idx += 1;
-            }
-
             _ => panic!("Unexpected op: {:?}", op)
         }
     }
 
-    fn run(&mut self) {
-        while self.idx >= 0 && self.idx < self.operations.len() {
-            let op = self.operations[self.idx].clone();
-            self.apply(op);
-        }
+    fn tick(&mut self, other: &mut Self) {
+        let op = self.operations[self.idx].clone();
+        self.apply(op, other);
     }
 }
 
@@ -114,7 +115,13 @@ fn main() {
         map(|line| line.parse().unwrap()).
         collect();
 
-    let mut cpu = Cpu::new(0, ops.clone());
+    let mut one = Cpu::new(0, ops.clone());
+    let mut two = Cpu::new(1, ops.clone());
 
-    cpu.run();
+    loop {
+        one.tick(&mut two);
+        two.tick(&mut one);
+
+        println!("Sent: {}", two.sent);
+    }
 }
