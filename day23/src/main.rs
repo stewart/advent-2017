@@ -10,10 +10,26 @@ fn main() {
         collect();
 
     let mut cpu = Cpu::new(operations.clone());
-
     cpu.run();
 
     println!("1 -> {}", cpu.muls());
+
+    let start: isize = 65 * 100 + 100_000;
+    let end: isize = start + 17_000 + 17;
+    let two: usize = (start..end).
+            filter(|n| (n - start) % 17 == 0).
+            filter(|&n| not_prime(n)).
+            count();
+
+    println!("2 -> {}", two);
+}
+
+fn root(n: isize) -> isize {
+    (n as f64).sqrt() as isize
+}
+
+fn not_prime(n: isize) -> bool {
+    (2..(root(n) + 1)).any(|v| (n % v) == 0)
 }
 
 struct Cpu {
